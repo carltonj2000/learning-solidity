@@ -1,0 +1,15 @@
+{
+  "name": "learning-solidity",
+  "version": "1.0.0",
+  "description": "##",
+  "main": "index.js",
+  "scripts": {
+    "remix": "remixd -s /Users/carltonjoseph/cj/cj2018/courses/block-chain-tutorials/learning-solidity --remix-ide https://remix.ethereum.org"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "remixd": "^0.1.8-alpha.6"
+  }
+}
