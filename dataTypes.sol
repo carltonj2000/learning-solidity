@@ -55,7 +55,7 @@ contract DataTypes {
     
     mapping (address => Account) _accounts;
     
-    function () payable public {
+    function () public payable  {
         _accounts[msg.sender].balance += msg.value;
     }
     
