@@ -4,6 +4,13 @@
 
 ### Setup up local file access for remix
 
+#### 2018-11-27
+
+- Stopped using local file sharing due to _constant_ prompting for the IDE
+  saying the file on the local host had changed and would I like to reload it.
+
+#### Instructions
+
 The install instructions below were take from
 [Access your local filesystem by using remixd](https://remix.readthedocs.io/en/latest/tutorial_remixd_filesystem.html)
 article.

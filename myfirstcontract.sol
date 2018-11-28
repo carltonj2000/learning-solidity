@@ -7,15 +7,22 @@ interface Regulator {
 
 contract Bank is Regulator {
     uint private value;
+    address private owner;
+    
+    modifier ownerFunc {
+        require(owner == msg.sender, "only owner can access account");
+        _;
+    }
     
     constructor(uint _value) public {
         value = _value;
+        owner = msg.sender;
     }
-    function deposit(uint _value) public {
+    function deposit(uint _value) ownerFunc public {
         value += _value;
     }
     
-    function withdraw(uint _value) public {
+    function withdraw(uint _value) ownerFunc public {
         if (this.checkValue(_value)) {
             value -= _value;
         }
@@ -26,7 +33,7 @@ contract Bank is Regulator {
     }
     
     function checkValue(uint _value) external view returns (bool) {
-        return _value >= value;
+        return value >= _value;
     }
     
 }
