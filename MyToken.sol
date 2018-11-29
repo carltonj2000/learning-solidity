@@ -1,53 +1,77 @@
 pragma solidity ^0.4.25;
 
+import "browser/Token.sol";
 import "browser/ERC20.sol";
+import "browser/ERC223.sol";
+import "browser/ERC223ReceivingContract.sol";
 
-contract MyToken is ERC20Interface {
-    string public constant symbol = "MFT";
-    string public constant name = "My First Token";
-    uint8 public constant decimals = 18;
-    
-    uint private constant __totalSupply = 1000;
-    mapping (address => uint) private __balanceOf;
-    mapping (address => mapping(address => uint)) private __allowances;
+contract MyToken is Token("MFT", "My First Token", 18, 1000), ERC20Interface, ERC223Interface {
     
     constructor () public {
-        __balanceOf[msg.sender] == __totalSupply;
+        _balanceOf[msg.sender] == _totalSupply;
     }
-    function totalSupply() public constant returns (uint) {
-        return __totalSupply;
-    }
-    
-    function balanceOf(address tokenOwner) public constant returns (uint balance) {
-        return __balanceOf[tokenOwner];
+
+    function balanceOf(address tokenOwner) public view returns (uint balance) {
+        return _balanceOf[tokenOwner];
     }
     function transfer(address to, uint tokens) public returns (bool success) {
-        if (tokens > 0 && tokens <= balanceOf(msg.sender)) {
-            __balanceOf[to] += tokens;
-            __balanceOf[msg.sender] -= tokens;
+        if (
+            tokens > 0 &&
+            tokens <= _balanceOf[msg.sender] &&
+            !isContract(to)
+        ) {
+            _balanceOf[to] += tokens;
+            _balanceOf[msg.sender] -= tokens;
             return true;
+        }
+        emit Transfer(msg.sender, to, tokens, "");
+        return false;
+    }
+    function transfer(address to, uint tokens, bytes data) public returns (bool success) {
+        if (
+            tokens > 0 &&
+            tokens <= _balanceOf[msg.sender] &&
+            isContract(to)
+        ) {
+            _balanceOf[to] += tokens;
+            _balanceOf[msg.sender] -= tokens;
+            ERC223Receiver _contract = ERC223Receiver(to);
+            _contract.tokenFallback(msg.sender, tokens, data);
+            emit Transfer(msg.sender, to, tokens, data);
+            return true;
+        }
+        return false;        
+    }
+    function isContract(address addr) private view returns (bool) {
+        uint codeSize;
+        assembly {
+            codeSize := extcodesize(addr)
+        }
+        return codeSize > 0;
+    }
+    
+    function transferFrom(address from, address to, uint tokens) public returns (bool success) {
+        if (
+            tokens > 0 && 
+            _allowances[from][msg.sender] >= tokens &&
+            _balanceOf[from] >= tokens
+        ) {
+            _balanceOf[from] -= tokens;
+            _balanceOf[to] += tokens;
+            _allowances[from][msg.sender] -= tokens;
+            emit Transfer(from, to, tokens, "");
+            return true;            
         }
         return false;
     }
 
-    function transferFrom(address from, address to, uint tokens) public returns (bool success) {
-        if (tokens <= 0 && tokens > __allowances[from][msg.sender]) return false;
-        __balanceOf[from] -= tokens;
-        __balanceOf[to] += tokens;
-        return true;
-    }
-
     function approve(address spender, uint tokens) public returns (bool success) {
-        if (tokens <= balanceOf(msg.sender)) return false;
-        __allowances[msg.sender][spender] = tokens;
+        _allowances[msg.sender][spender] = tokens;
+        emit Approval(msg.sender, spender, tokens);
         return true;
     }
 
     function allowance(address tokenOwner, address spender) public constant returns (uint remaining) {
-        return __allowances[tokenOwner][spender];
+        return _allowances[tokenOwner][spender];
     }
-
-
-    event Transfer(address indexed from, address indexed to, uint tokens);
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);    
 }
